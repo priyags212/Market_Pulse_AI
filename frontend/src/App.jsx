@@ -58,7 +58,7 @@ function App() {
       <Router>
         <div className="app-container">
           {showDisclaimer && isAuthenticated && (
-            <DisclaimerModal onClose={handleCloseDisclaimer} />
+            <DisclaimerModal isOpen={true} onClose={handleCloseDisclaimer} />
           )}
           <Routes>
             <Route

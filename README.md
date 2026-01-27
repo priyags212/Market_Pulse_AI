@@ -21,8 +21,8 @@ MarketPulse AI is a comprehensive web application that aggregates real-time fina
 
 ### 🤖 AI-Powered Analysis
 - **Sentiment Analysis**: FinBERT-based sentiment scoring for every article (positive/negative/neutral)
-- **AI Summarization**: Local T5 model (Flan-T5) for privacy-focused article summaries
-- **Intelligent Chatbot**: Local Llama 3 (via Ollama) financial assistant for market queries
+- **AI Summarization**: Local **Flan-T5** model with advanced post-processing and anti-hallucination filters
+- **Intelligent Chatbot**: Local **Llama 3.2** (via Ollama) with strict financial context guardrails
 - **Trend Detection**: Identifies trending news based on engagement metrics
 
 ### 📊 Market Data Integration
@@ -52,8 +52,8 @@ MarketPulse AI is a comprehensive web application that aggregates real-time fina
 - **Framework**: FastAPI (Python)
 - **Database**: SQLite with SQLAlchemy ORM
 - **AI/ML**: 
-  - **Llama 3 / 3.2**: Local LLM for chatbot (via Ollama)
-  - **Flan-T5**: Local Transformer model for summarization
+  - **Llama 3.2**: Local LLM for chatbot (via Ollama)
+  - **Flan-T5 Base**: Local Transformer model for summarization
   - **FinBERT**: Sentiment analysis
 - **Web Scraping**: BeautifulSoup4, Requests
 - **Market Data**: yfinance for real-time stock data
@@ -222,9 +222,14 @@ MarketPulseAI-main/
 
 ### AI Chatbot
 - **Context-aware**: Understands financial terminology and market context
-- **Multi-turn conversations**: Maintains conversation history
-- **Market insights**: Provides analysis based on latest news and data
-- **Natural language**: User-friendly conversational interface
+- **Strict Guardrails**: Automatically declines non-financial queries to ensure relevance
+- **Markdown Formatting**: Renders responses with bolding, lists, and proper structure
+- **Local Privacy**: Runs entirely on your machine via Ollama
+
+### Smart Summarization
+- **Noise Filtering**: Aggressively strips ads, sidebars, and "Read More" links before processing
+- **Anti-Hallucination**: Custom filters to remove generated garbage, footer text, and pricing errors
+- **Beam Search**: High-quality generation with beam width of 4 for grammatical accuracy
 
 ---
 
@@ -301,7 +306,14 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 
 ## 👨‍💻 Author
 
-**Ayushi**
+**The MarketPulse AI Team**
+
+- **Prashant Gupta**
+- **Aniruddha Dawkhare**
+- **Yashodhan Agashe**
+- **Ayushi Punde**
+- **Rujali Nagbhidkar**
+- **Priyanka Mankar**
 
 ---
 

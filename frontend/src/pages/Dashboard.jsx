@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import axios from 'axios';
 import { Newspaper, TrendingUp, MessageSquare, Send, X, ExternalLink, ArrowUpRight, ArrowDownRight, Minus, Activity, Linkedin, LogOut, Sun, Moon, Bell, Settings, Bookmark, Star as StarIcon, Search, Plus, RefreshCw, Eye, Flame, ChevronDown, Menu, Briefcase, ArrowRight, BarChart3 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -1316,7 +1317,7 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
                             </div>
                             <div>
                                 <h3 className="font-bold text-sm text-slate-800 dark:text-gray-100">MarketPulse Assistant</h3>
-                                <p className="text-[10px] text-blue-600 dark:text-blue-300/80">Powered by Gemini 2.5</p>
+                                <p className="text-[10px] text-blue-600 dark:text-blue-300/80">Powered by Ollama (Llama 3.2)</p>
                             </div>
                         </div>
                         <button onClick={() => setChatHistory([])} className="p-2 hover:bg-slate-100 dark:hover:bg-white/5 rounded-full transition-colors text-slate-400 dark:text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:text-blue-400" title="Clear Chat">
@@ -1366,7 +1367,19 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
                                             ? 'bg-blue-600 text-white rounded-tr-sm shadow-blue-500/10'
                                             : 'bg-slate-100 dark:bg-gray-800/80 border border-slate-200 dark:border-white/5 text-slate-800 dark:text-gray-200 rounded-tl-sm backdrop-blur-sm'}
                 `}>
-                                        {msg.content}
+                                        {/* Use ReactMarkdown with prose class for formatting */}
+                                        <div className="prose dark:prose-invert prose-sm max-w-none text-xs marker:text-blue-500">
+                                            <ReactMarkdown
+                                                components={{
+                                                    strong: ({ node, ...props }) => <span className="font-bold text-slate-900 dark:text-white" {...props} />,
+                                                    ul: ({ node, ...props }) => <ul className="list-disc pl-4 space-y-1 my-2" {...props} />,
+                                                    li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                                                    p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />
+                                                }}
+                                            >
+                                                {msg.content}
+                                            </ReactMarkdown>
+                                        </div>
                                     </div>
                                 </div>
                             ))

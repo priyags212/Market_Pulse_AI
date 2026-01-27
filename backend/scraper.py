@@ -387,9 +387,20 @@ def scrape_article_content(url):
                       soup.find("div", id="article-main")
                       
         if content_div:
+            # aggressive cleaning
+            for tag in content_div(["script", "style", "aside", "div.ads", "div.related_news"]):
+                tag.decompose()
+            
             paragraphs = content_div.find_all("p")
-            text = "\n".join([p.text.strip() for p in paragraphs if p.text.strip()])
-            return text
+            clean_text = []
+            for p in paragraphs:
+                text = p.get_text(strip=True)
+                # Filter out garbage commonly causing hallucinations
+                if len(text) < 20: continue # Skip tiny fragments
+                if "Read Also" in text or "Click here" in text: continue
+                clean_text.append(text)
+                
+            return "\n".join(clean_text)
 
         return "Could not extract article content."
 

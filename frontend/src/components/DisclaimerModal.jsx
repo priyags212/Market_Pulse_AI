@@ -42,7 +42,6 @@ const DisclaimerModal = ({ isOpen, onClose }) => {
                         onClick={onClose}
                         className="flex items-center gap-2 px-6 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-black rounded-xl font-bold hover:opacity-90 transition-opacity"
                     >
-                        <X className="w-4 h-4" />
                         I Understand
                     </button>
                 </div>
