@@ -263,11 +263,19 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
                 }
             } else {
                 // For General Feed (All Time, Trending, Time filters):
-                // Apply "Customize Feed" preferences if they exist.
-                const userCategories = JSON.parse(localStorage.getItem('userCategories') || '[]');
-                if (userCategories.length > 0) {
-                    params.categories = userCategories.join(',');
+                // User Requirement: "custom feed should be linked to the user only. if i logout ... default all categories"
+
+                if (isAuthenticated) {
+                    const userEmail = localStorage.getItem('userEmail');
+                    // Store/Retrieve per user to prevent leaking prefs between users on same device
+                    const storageKey = userEmail ? `userCategories_${userEmail}` : 'userCategories';
+
+                    const userCategories = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                    if (userCategories.length > 0) {
+                        params.categories = userCategories.join(',');
+                    }
                 }
+                // If not authenticated, params.categories remains undefined -> Backend returns ALL news.
 
                 if (dateFilter !== 'all' && dateFilter !== 'trending') {
                     params.filter_type = dateFilter;

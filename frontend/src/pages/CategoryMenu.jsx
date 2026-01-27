@@ -38,7 +38,9 @@ const CategoryMenu = () => {
 
     useEffect(() => {
         // Load existing preferences if any
-        const saved = localStorage.getItem('userCategories');
+        const userEmail = localStorage.getItem('userEmail');
+        const storageKey = userEmail ? `userCategories_${userEmail}` : 'userCategories';
+        const saved = localStorage.getItem(storageKey);
         if (saved) {
             setSelected(JSON.parse(saved));
         }
@@ -53,7 +55,9 @@ const CategoryMenu = () => {
     };
 
     const handleContinue = () => {
-        localStorage.setItem('userCategories', JSON.stringify(selected));
+        const userEmail = localStorage.getItem('userEmail');
+        const storageKey = userEmail ? `userCategories_${userEmail}` : 'userCategories';
+        localStorage.setItem(storageKey, JSON.stringify(selected));
         navigate('/'); // Go to Dashboard
     };
 
@@ -82,8 +86,8 @@ const CategoryMenu = () => {
                                         key={cat.id}
                                         onClick={() => toggleCategory(cat.id)}
                                         className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-3 transition-all duration-200 group relative overflow-hidden ${isSelected
-                                                ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/30'
-                                                : 'bg-white dark:bg-[#13161b] border-slate-200 dark:border-white/5 hover:border-blue-500/50 hover:bg-slate-50 dark:hover:bg-white/5'
+                                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/30'
+                                            : 'bg-white dark:bg-[#13161b] border-slate-200 dark:border-white/5 hover:border-blue-500/50 hover:bg-slate-50 dark:hover:bg-white/5'
                                             }`}
                                     >
                                         <div className={`p-2 rounded-full ${isSelected ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5 group-hover:scale-110 transition-transform'}`}>
@@ -113,8 +117,8 @@ const CategoryMenu = () => {
                                         key={cat.id}
                                         onClick={() => toggleCategory(cat.id)}
                                         className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-3 transition-all duration-200 group relative overflow-hidden ${isSelected
-                                                ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30'
-                                                : 'bg-white dark:bg-[#13161b] border-slate-200 dark:border-white/5 hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-white/5'
+                                            ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/30'
+                                            : 'bg-white dark:bg-[#13161b] border-slate-200 dark:border-white/5 hover:border-emerald-500/50 hover:bg-slate-50 dark:hover:bg-white/5'
                                             }`}
                                     >
                                         <div className={`p-2 rounded-full ${isSelected ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5 group-hover:scale-110 transition-transform'}`}>
