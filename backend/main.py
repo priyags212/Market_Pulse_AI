@@ -13,8 +13,21 @@ from sqlalchemy.orm import Session
 from scraper import get_latest_news
 from sentiment import init_model as init_sentiment
 from market_data import get_market_data, get_stock_details, get_stock_history
-from chatbot import get_chat_response, init_gemini, init_summarizer
+from chatbot import get_chat_response, init_gemini
 from database import init_db, get_db, User, WatchlistItem, NewsAnalytics, hash_password, verify_password
+
+# Scheduler & Notifications
+from apscheduler.schedulers.background import BackgroundScheduler
+from notification_manager import NotificationManager
+
+# Global Scheduler
+scheduler = BackgroundScheduler()
+notification_manager = None
+
+def run_notification_job():
+    print("Executing scheduled notification job...")
+    if notification_manager:
+        notification_manager.check_and_notify()
 
 # Load env vars
 load_dotenv()
@@ -100,16 +113,37 @@ async def load_models_background():
     # unless we wrap in to_thread (Python 3.9+).
     await asyncio.to_thread(init_sentiment)
     await asyncio.to_thread(init_gemini)
-    await asyncio.to_thread(init_summarizer)
+
     print("All models loaded in background.")
 
 @app.on_event("startup")
 async def startup_event():
     print("Server starting specific tasks...")
     init_db()
+    
+    # Initialize Notification Manager
+    global notification_manager
+    from database import SessionLocal
+    notification_manager = NotificationManager(SessionLocal)
+    
+    # Start Scheduler
+    try:
+        if not scheduler.running:
+            scheduler.add_job(run_notification_job, 'interval', minutes=15)
+            scheduler.start()
+            print("Notification scheduler started (15 min interval).")
+    except Exception as e:
+        print(f"Error starting scheduler: {e}")
+
     # Offload heavy lifting to background thread
     asyncio.create_task(load_models_background())
     print("Server startup sequence complete (Models loading in background).")
+
+@app.on_event("shutdown")
+def shutdown_event():
+    if scheduler.running:
+        scheduler.shutdown()
+        print("Scheduler shut down.")
 
 @app.get("/")
 def read_root():
@@ -420,6 +454,14 @@ def remove_from_watchlist(email: str, symbol: str, db: Session = Depends(get_db)
         return {"message": "Removed from watchlist"}
     
     raise HTTPException(status_code=404, detail="Item not found in watchlist")
+
+@app.post("/debug/trigger-notifications")
+def trigger_notifications_manual():
+    if notification_manager:
+        # Run primarily for debugging, so we allow it to block slightly
+        notification_manager.check_and_notify()
+        return {"message": "Notification check triggered manually."}
+    return {"message": "Notification manager not initialized."}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

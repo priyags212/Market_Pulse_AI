@@ -74,7 +74,7 @@ def populate_cache(news_items):
 def fetch_details_single(link, basic_data):
     """Fetches details for a single article link."""
     image_url = basic_data.get("image_url")
-    timestamp = None  # Start with None instead of current time
+    timestamp = basic_data.get("timestamp") # Preserve existing timestamp if available
     
     try:
          article_res = requests.get(link, headers=HEADERS, timeout=5)
@@ -117,7 +117,9 @@ def fetch_details_single(link, basic_data):
              
              # Fallback 1: Meta tag for article published time
              if not timestamp:
-                 meta_date = a_soup.find("meta", property="article:published_time")
+                 meta_date = a_soup.find("meta", property="article:published_time") or \
+                            a_soup.find("meta", property="og:article:published_time") or \
+                            a_soup.find("meta", attrs={"name": "datePublished"})
                  if meta_date and meta_date.get("content"):
                      timestamp = meta_date.get("content")
              
@@ -166,13 +168,16 @@ def fetch_details_single(link, basic_data):
                     except:
                         continue
         
-        # Only use current time if we absolutely couldn't find a timestamp
-        if not timestamp:
-            print(f"Warning: Could not extract timestamp for {link}, using current time")
-            timestamp = datetime.now().strftime("%d %b %Y, %I:%M %p")
+        # Only use current time if we absolutely couldn't find a timestamp AND didn't have one before
+        if not timestamp and not basic_data.get("timestamp"):
+             print(f"Warning: No timestamp found for {link}. Marking for removal.")
+             timestamp = None 
+             
     except Exception as e:
         print(f"Error formatting timestamp for {link}: {e}")
-        timestamp = datetime.now().strftime("%d %b %Y, %I:%M %p")
+        # Don't overwrite if we have something valid
+        if not timestamp:
+             timestamp = basic_data.get("timestamp") or None
 
     # Analyze Sentiment
     sentiment_result = {"label": "neutral", "score": 0.0}
@@ -296,7 +301,8 @@ def scrape_category(url, category_name):
                 "headline": headline,
                 "link": link,
                 "image_url": ARTICLE_CACHE.get(link, {}).get("image_url"),
-                "timestamp": ARTICLE_CACHE.get(link, {}).get("timestamp") or datetime.now().strftime("%d %b %Y, %I:%M %p"),
+                # Use listing timestamp if available, otherwise checks cache, or leaves as None to be filled by deep fetch
+                "timestamp": ARTICLE_CACHE.get(link, {}).get("timestamp") or (listing_timestamp.strftime("%d %b %Y, %I:%M %p") if listing_timestamp else None),
                 "sentiment": ARTICLE_CACHE.get(link, {}).get("sentiment") or "neutral",
                 "sentiment_score": ARTICLE_CACHE.get(link, {}).get("sentiment_score") or 0.0,
                 "needs_deep_fetch": True 
@@ -395,12 +401,23 @@ def scrape_article_content(url):
             clean_text = []
             for p in paragraphs:
                 text = p.get_text(strip=True)
+                
                 # Filter out garbage commonly causing hallucinations
-                if len(text) < 20: continue # Skip tiny fragments
-                if "Read Also" in text or "Click here" in text: continue
+                if len(text) < 30: continue # Skip tiny fragments
+                
+                text_lower = text.lower()
+                # Stop phrases that indicate the end of the article
+                if "disclaimer" in text_lower and len(text) < 100: break
+                if "copyright" in text_lower and "all rights reserved" in text_lower: break
+
+                # Skip promotional/link noise
+                noise_phrases = ["read also", "click here", "read more", "follow us on", "download", "whatsapp channel"]
+                if any(phrase in text_lower for phrase in noise_phrases):
+                    continue
+                    
                 clean_text.append(text)
                 
-            return "\n".join(clean_text)
+            return "\n\n".join(clean_text)
 
         return "Could not extract article content."
 
@@ -448,21 +465,31 @@ def background_scrape_and_save(existing_news):
                 # Convert back to list
                 updated_news = list(merged_map.values())
                 
-                # Filter out articles older than 7 days
-                cutoff_date = datetime.now() - timedelta(days=7)
+                # Filter out articles older than 30 days (User requested "this month")
+                cutoff_date = datetime.now() - timedelta(days=30)
                 filtered_news = []
                 for article in updated_news:
                     try:
-                        timestamp_str = article.get("timestamp", "")
-                        if timestamp_str:
-                            article_date = datetime.strptime(timestamp_str, "%d %b %Y, %I:%M %p")
-                            if article_date >= cutoff_date:
-                                filtered_news.append(article)
-                            else:
-                                print(f"Filtering out old article: {article.get('headline', '')[:50]}... (Date: {timestamp_str})")
+                        timestamp_str = article.get("timestamp")
+                        # STRICT FILTER: Drop if no timestamp
+                        if not timestamp_str:
+                            print(f"Dropping undated article: {article.get('headline', '')[:50]}...")
+                            # REVERT: If user wants old articles, we might need to keep them?
+                            # But undated ones break the sorting.
+                            # Let's keep them but with a default very old date if we want to preserve them?
+                            # No, for now let's just log.
+                            continue
+
+                        article_date = datetime.strptime(timestamp_str, "%d %b %Y, %I:%M %p")
+                        if article_date >= cutoff_date:
+                            filtered_news.append(article)
+                        else:
+                            print(f"Filtering out old article: {article.get('headline', '')[:50]}... (Date: {timestamp_str})")
+                            # If we want to keep them: filtered_news.append(article)
                     except:
-                        # If we can't parse the date, keep the article to be safe
-                        filtered_news.append(article)
+                        # If we can't parse the date, DROP IT to avoid crashes.
+                        print(f"Dropping article with invalid date: {article.get('headline', '')} ({article.get('timestamp')})")
+                        continue
                 
                 # Sort by timestamp (most recent first)
                 try:

@@ -885,6 +885,7 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
                                         />
 
 
+
                                         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 dark:from-gray-900/80 via-transparent to-transparent opacity-60" />
 
                                         {item.views > 15 && (
@@ -898,6 +899,8 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
                                                 FOR YOU
                                             </div>
                                         )}
+
+
                                     </div>
 
                                     <div className="px-2 pb-2 flex-1 flex flex-col">
@@ -1337,22 +1340,7 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
                                     </div>
                                     <div>
                                         <h4 className="text-slate-800 dark:text-gray-200 font-medium mb-1">How can I help you?</h4>
-                                        <p className="text-xs text-slate-500 dark:text-gray-500 mb-4">Ask about market trends, or try these suggestions:</p>
-
-                                        <div className="flex flex-col gap-2 w-full px-1">
-                                            {news.slice(0, 3).map((item, i) => (
-                                                <button
-                                                    key={i}
-                                                    onClick={() => setChatQuery(item.suggested_question ? `Analyze: ${item.suggested_question}` : `Analyze: ${item.headline}`)}
-                                                    className="w-full text-[10px] bg-slate-100 dark:bg-gray-800/50 hover:bg-blue-50 dark:hover:bg-blue-600/20 border border-slate-200 dark:border-white/5 hover:border-blue-500/50 rounded-xl p-2.5 text-left transition-all group overflow-hidden"
-                                                >
-                                                    <span className="block text-blue-600 dark:text-blue-400 font-bold mb-0.5 group-hover:text-blue-700 dark:group-hover:text-blue-300">Analysis Request</span>
-                                                    <span className="block text-slate-600 dark:text-gray-400 truncate group-hover:text-slate-900 dark:group-hover:text-gray-200 w-full overflow-hidden text-ellipsis whitespace-nowrap">
-                                                        {item.suggested_question || item.headline}
-                                                    </span>
-                                                </button>
-                                            ))}
-                                        </div>
+                                        <p className="text-xs text-slate-500 dark:text-gray-500 mb-4">Ask me anything about the Indian Stock Market.</p>
                                     </div>
                                 </div>
                             )

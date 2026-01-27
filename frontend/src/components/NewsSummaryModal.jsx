@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X, ExternalLink, Bot, Loader2, Calendar } from 'lucide-react';
+import Markdown from 'react-markdown';
 
 const NewsSummaryModal = ({ isOpen, onClose, article, summary, isLoading }) => {
     if (!isOpen || !article) return null;
@@ -81,43 +82,10 @@ const NewsSummaryModal = ({ isOpen, onClose, article, summary, isLoading }) => {
                                 <p className="text-sm text-slate-500 dark:text-gray-400 animate-pulse">Generating summary...</p>
                             </div>
                         ) : (
-                            <div className="prose dark:prose-invert prose-sm max-w-none">
-                                <div className="font-mono text-sm leading-relaxed space-y-4">
-                                    {summary.split('\n').map((line, i) => {
-                                        if (line.includes(':')) {
-                                            const [label, ...valueParts] = line.split(':');
-                                            const value = valueParts.join(':').trim();
-
-                                            // Handle sections vs fields
-                                            if (!value && label.trim()) {
-                                                return (
-                                                    <div key={i} className="mt-6 mb-2">
-                                                        <span className="text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
-                                                            {label.trim()}:
-                                                        </span>
-                                                    </div>
-                                                );
-                                            }
-
-                                            return (
-                                                <div key={i} className="flex flex-wrap gap-x-2">
-                                                    <span className="text-blue-600 dark:text-blue-400 font-bold">{label.trim()}:</span>
-                                                    <span className="text-slate-700 dark:text-white font-medium">{value}</span>
-                                                </div>
-                                            );
-                                        }
-
-                                        if (line.trim()) {
-                                            return (
-                                                <p key={i} className="text-slate-700 dark:text-white font-medium ml-0">
-                                                    {line.trim()}
-                                                </p>
-                                            );
-                                        }
-
-                                        return <div key={i} className="h-2" />;
-                                    })}
-                                </div>
+                            <div className="prose dark:prose-invert prose-sm max-w-none text-slate-700 dark:text-gray-300">
+                                <Markdown>
+                                    {summary}
+                                </Markdown>
                             </div>
                         )}
                     </div>

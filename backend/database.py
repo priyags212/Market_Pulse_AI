@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import bcrypt
 import os
+from datetime import datetime
 
 DATABASE_URL = "sqlite:///./marketpulse.db"
 
@@ -38,6 +39,19 @@ class NewsAnalytics(Base):
     id = Column(Integer, primary_key=True, index=True)
     news_link = Column(String, unique=True, index=True)
     views = Column(Integer, default=0)
+
+class SentNotification(Base):
+    __tablename__ = "sent_notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    article_link = Column(String, index=True)
+    sent_at = Column(DateTime, default=datetime.utcnow)
+
+    # We want to ensure a user doesn't get the same link twice
+    # But SQLite doesn't support complex unique constraints easily in this declarative style without Table args
+    # For now, we'll handle unique checks in logic or add a UniqueConstraint if needed.
+
 
 class NewsItem(Base):
     __tablename__ = "news_items"

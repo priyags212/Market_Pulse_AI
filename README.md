@@ -283,7 +283,8 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
 
 - [ ] Multi-source news aggregation (Bloomberg, Reuters, etc.)
 - [ ] Advanced portfolio tracking and analytics
-- [ ] Email/SMS alerts for watchlist stocks
+- [x] Email alerts for watchlist stocks (Implemented v1)
+- [ ] SMS/WhatsApp integration
 - [ ] Mobile application (React Native)
 - [ ] Social sentiment analysis from Twitter/Reddit
 - [ ] Technical analysis indicators

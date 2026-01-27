@@ -70,13 +70,10 @@ def get_chat_response(query: str, context: str = "") -> str:
         logger.error(f"Error in chat generation: {e}")
         return f"I apologize, but I encountered an error processing your request. ({str(e)})"
 
-# Legacy/Unused for now but kept if main.py imports it
-def init_summarizer():
-    pass
+
 
 # Imports for Summarization
 from scraper import scrape_article_content
-from summarizer import summarize_with_t5
 from sentiment import analyze_sentiment
 
 def summarize_news(news_link: str):
@@ -89,9 +86,15 @@ def summarize_news(news_link: str):
         if not content or len(content) < 100:
             return {"summary": "Could not extract sufficient content from this article to summarize.", "sentiment": "neutral"}
             
-        # 2. Summarize
-        # Note: summarize_with_t5 handles model loading if needed
-        summary = summarize_with_t5(content)
+        # 2. Summarize using Ollama (Llama 3)
+        summary_prompt = (
+            "You are an expert financial analyst. Summarize the following news article into a concise, professional paragraph (approx 100-150 words). "
+            "Focus on the key financial details, market impact, and companies involved. "
+            "Do NOT include any introductory phrases like 'Here is the summary'. Start directly with the summary.\n\n"
+            f"Article Content:\n{content[:6000]}"  # Limit context to avoid overflow if article is huge
+        )
+        
+        summary = get_chat_response(summary_prompt)
         
         # 3. Sentiment Analysis
         sentiment_result = analyze_sentiment(content[:1000]) # Analyze start of content
