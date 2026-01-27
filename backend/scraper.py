@@ -1,4 +1,4 @@
-import requests
+from curl_cffi import requests
 from bs4 import BeautifulSoup
 import json
 import time
@@ -39,7 +39,10 @@ CATEGORY_URLS = {
 
 JSON_FILE = "moneycontrol_news.json"
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Referer": "https://www.google.com/"
 }
 
 def load_existing_news():
@@ -77,7 +80,7 @@ def fetch_details_single(link, basic_data):
     timestamp = basic_data.get("timestamp") # Preserve existing timestamp if available
     
     try:
-         article_res = requests.get(link, headers=HEADERS, timeout=5)
+         article_res = requests.get(link, headers=HEADERS, timeout=5, impersonate="chrome")
          if article_res.status_code == 200:
              a_soup = BeautifulSoup(article_res.text, "html.parser")
              
@@ -244,7 +247,7 @@ def extract_listing_timestamp(article_element):
 def scrape_category(url, category_name):
     print(f"Scraping [{category_name}] Headlines...")
     try:
-        response = requests.get(url, headers=HEADERS, timeout=10)
+        response = requests.get(url, headers=HEADERS, timeout=10, impersonate="chrome")
         response.raise_for_status()
     except requests.RequestException as e:
         print(f"Error scraping {url}: {e}")
@@ -365,7 +368,7 @@ def scrape_article_content(url):
     Scrapes the full text content of a news article.
     """
     try:
-        response = requests.get(url, headers=HEADERS, timeout=10)
+        response = requests.get(url, headers=HEADERS, timeout=10, impersonate="chrome")
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
 

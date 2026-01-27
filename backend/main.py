@@ -129,9 +129,9 @@ async def startup_event():
     # Start Scheduler
     try:
         if not scheduler.running:
-            scheduler.add_job(run_notification_job, 'interval', minutes=15)
+            scheduler.add_job(run_notification_job, 'interval', minutes=1)
             scheduler.start()
-            print("Notification scheduler started (15 min interval).")
+            print("Notification scheduler started (1 min interval).")
     except Exception as e:
         print(f"Error starting scheduler: {e}")
 

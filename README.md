@@ -21,7 +21,7 @@ MarketPulse AI is a comprehensive web application that aggregates real-time fina
 
 ### 🤖 AI-Powered Analysis
 - **Sentiment Analysis**: FinBERT-based sentiment scoring for every article (positive/negative/neutral)
-- **AI Summarization**: Local **Flan-T5** model with advanced post-processing and anti-hallucination filters
+- **AI Summarization**: Local **Llama 3.2** model (via Ollama) with advanced post-processing and anti-hallucination filters
 - **Intelligent Chatbot**: Local **Llama 3.2** (via Ollama) with strict financial context guardrails
 - **Trend Detection**: Identifies trending news based on engagement metrics
 
@@ -53,7 +53,7 @@ MarketPulse AI is a comprehensive web application that aggregates real-time fina
 - **Database**: SQLite with SQLAlchemy ORM
 - **AI/ML**: 
   - **Llama 3.2**: Local LLM for chatbot (via Ollama)
-  - **Flan-T5 Base**: Local Transformer model for summarization
+
   - **FinBERT**: Sentiment analysis
 - **Web Scraping**: BeautifulSoup4, Requests
 - **Market Data**: yfinance for real-time stock data
