@@ -5,7 +5,12 @@
 MarketPulse AI is a comprehensive web application that aggregates real-time financial news from MoneyControl, performs sentiment analysis, provides AI-powered insights, and delivers personalized market intelligence to help users make informed investment decisions.
 
 ---
+## 🌟 Problem Statement
+- Investors waste time visiting multiple platforms and reading lengthy financial news to understand market impact.
+- MarketPulse AI automatically analyzes financial news using ML to classify sentiment as positive or negative in real time.
+- It presents market prices, news sentiment, and overall market direction on a single, easy-to-read dashboard for faster decisions.
 
+---
 ## 🌟 Key Features
 
 ### 📰 Real-Time News Aggregation
