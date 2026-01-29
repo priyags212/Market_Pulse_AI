@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 # Import our modules
 from scraper import get_latest_news
 from sentiment import init_model as init_sentiment
-from market_data import get_market_data, get_stock_details, get_stock_history
+from market_data import get_market_data, get_stock_details, get_stock_history, get_stock_financials
 from chatbot import get_chat_response, init_gemini
 from database import init_db, get_db, User, WatchlistItem, NewsAnalytics, hash_password, verify_password
 
@@ -337,6 +337,11 @@ def read_stock_details(symbol: str):
 @app.get("/stock/{symbol}/history")
 def read_stock_history(symbol: str, period: str = "1mo"):
     data = get_stock_history(symbol, period)
+    return data
+
+@app.get("/stock/{symbol}/financials")
+def read_stock_financials(symbol: str):
+    data = get_stock_financials(symbol)
     return data
 
 @app.post("/chat")

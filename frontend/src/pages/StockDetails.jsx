@@ -14,26 +14,40 @@ const StockDetails = () => {
     const [loading, setLoading] = useState(true);
     const [graphLoading, setGraphLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [activePeriod, setActivePeriod] = useState("1mo");
+    const [financials, setFinancials] = useState([]);
+    const [activePeriod, setActivePeriod] = useState("1d");
 
     useEffect(() => {
-        const fetchDetails = async () => {
+        const fetchDetails = async (isUpdate = false) => {
             try {
                 // If it's a generic symbol like "RELIANCE", backend handles appending .NS
                 const res = await axios.get(`${API_BASE}/stock/${symbol}`);
                 setData(res.data);
             } catch (err) {
                 console.error("Error fetching stock details:", err);
-                setError("Failed to load stock data. Please check the symbol or try again.");
+                if (!isUpdate) {
+                    setError("Failed to load stock data. Please check the symbol or try again.");
+                }
             } finally {
-                setLoading(false);
+                if (!isUpdate) setLoading(false);
             }
         };
 
         if (symbol) {
             fetchDetails();
             // Fetch graph initially
-            fetchGraphData("1mo");
+            fetchGraphData("1d");
+            // Fetch financials
+            axios.get(`${API_BASE}/stock/${symbol}/financials`)
+                .then(res => setFinancials(res.data))
+                .catch(err => console.error("Error fetching financials:", err));
+
+            // Poll every 5 seconds
+            const intervalId = setInterval(() => {
+                fetchDetails(true);
+            }, 5000);
+
+            return () => clearInterval(intervalId);
         }
     }, [symbol]);
 
@@ -263,8 +277,43 @@ const StockDetails = () => {
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+
+                {/* Quarterly Results */}
+                {
+                    financials.length > 0 && (
+                        <div className="bg-white dark:bg-[#13161b] rounded-3xl p-8 border border-slate-200 dark:border-white/5 shadow-xl">
+                            <h3 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-6">Quarterly Results</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 dark:border-white/5">
+                                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase">Period</th>
+                                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-right">Revenue</th>
+                                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-right">Net Income</th>
+                                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-right">EBITDA</th>
+                                            <th className="py-3 px-4 text-xs font-bold text-slate-500 uppercase text-right">EPS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {financials.map((q, i) => (
+                                            <tr key={i} className="border-b border-slate-50 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                                                <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">{q.date}</td>
+                                                <td className="py-3 px-4 text-right text-slate-700 dark:text-gray-300">{formatIndianCompact(q.revenue)}</td>
+                                                <td className={`py-3 px-4 text-right font-bold ${q.net_income >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                    {formatIndianCompact(q.net_income)}
+                                                </td>
+                                                <td className="py-3 px-4 text-right text-slate-700 dark:text-gray-300">{formatIndianCompact(q.ebitda)}</td>
+                                                <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-gray-300">₹{q.eps.toFixed(2)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )
+                }
+            </div >
+        </div >
     );
 };
 

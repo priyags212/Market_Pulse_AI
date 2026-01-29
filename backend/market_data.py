@@ -118,7 +118,7 @@ def get_stock_details(symbol):
         if symbol in STOCK_CACHE:
             cached = STOCK_CACHE[symbol]
             age = (datetime.now() - cached["timestamp"]).total_seconds()
-            if age < 30: # 30 Seconds Cache
+            if age < 10: # 10 Seconds Cache
                 # print(f"Serving {symbol} from cache")
                 return cached["data"]
 
@@ -231,5 +231,70 @@ def get_stock_history(symbol, period="1mo"):
         print(f"Error fetching history for {symbol}: {e}")
         return []
 
+
+def get_stock_financials(symbol):
+    """
+    Fetches quarterly financial data (Income Statement).
+    """
+    try:
+        # Resolve symbol
+        search_symbol = symbol
+        if not symbol.endswith(".NS") and not symbol.endswith(".BO") and not "=X" in symbol and not "^" in symbol:
+             search_symbol = f"{symbol}.NS"
+        
+        ticker = yf.Ticker(search_symbol)
+        
+        # Get Quarterly Income Statement
+        # transposed so columns are dates
+        fin = ticker.quarterly_income_stmt
+        
+        if fin.empty:
+            return []
+            
+        # We want columns (dates) to be the list items
+        # Structure: [ {date: '...', revenue: ...}, ... ]
+        
+        results = []
+        # Loop through columns (dates)
+        for date in fin.columns:
+            try:
+                col_data = fin[date]
+                
+                # Helper to safely get value by key (handling various naming conventions if needed)
+                # yfinance keys are usually Standardized
+                
+                revenue = col_data.get("Total Revenue", 0)
+                if not revenue or str(revenue) == 'nan':
+                     revenue = col_data.get("Operating Revenue", 0)
+                     
+                net_income = col_data.get("Net Income", 0)
+                ebitda = col_data.get("EBITDA", col_data.get("Normalized EBITDA", 0))
+                eps = col_data.get("Basic EPS", 0)
+                
+                import math
+                def sanitize(val):
+                    if not val or (isinstance(val, float) and math.isnan(val)):
+                        return 0
+                    return float(val)
+
+                results.append({
+                    "date": date.strftime("%b %Y"), # e.g., Dec 2024
+                    "revenue": sanitize(revenue),
+                    "net_income": sanitize(net_income),
+                    "ebitda": sanitize(ebitda),
+                    "eps": sanitize(eps)
+                })
+            except Exception as e:
+                print(f"Error parsing financial col {date}: {e}")
+                continue
+                
+        # Return last 5 quarters
+        return results[:5]
+
+    except Exception as e:
+        print(f"Error fetching financials for {symbol}: {e}")
+        return []
+
 if __name__ == "__main__":
-    print(get_market_data())
+    print(get_stock_financials("RELIANCE"))
+
