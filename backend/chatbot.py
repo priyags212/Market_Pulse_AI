@@ -23,7 +23,12 @@ Guidelines:
 5. Keep answers concise (under 150 words) unless detailed analysis is requested.
 6. Format your response in clean Markdown. Use **bold** for key terms, bullet points for lists, and clear spacing between sections.
 
+7. **USE RETRIEVED CONTEXT**: You may receive "Context Information" retrieved from financial documents. You MUST use this information to answer the user's question. If the context contains specific numbers (Revenue, EPS, Growth), cite them exactly.
+8. If the Context Information contradicts your internal knowledge, PRIORITIZE the Context Information.
+
 You likely have access to some context about news or market data passed in the user prompt. Use it effectively."""
+
+from rag_engine import retrieve_context
 
 def init_gemini():
     """No-op for compatibility, or check Ollama connection."""
@@ -46,9 +51,21 @@ def get_chat_response(query: str, context: str = "") -> str:
             {"role": "user", "content": query}
         ]
         
+        # RAG Integration
+        retrieved_context = retrieve_context(query)
+        final_context = context
+        
+        if retrieved_context:
+            print(f"RAG Context Found for query: {query}")
+            # Combine passed context (news) with RAG context (financials)
+            if final_context:
+                final_context = f"{final_context}\n\nRelated Financial Data:\n{retrieved_context}"
+            else:
+                final_context = retrieved_context
+
         # If context is provided (e.g. from RAG in future), append it
-        if context:
-            messages.insert(1, {"role": "system", "content": f"Context: {context}"})
+        if final_context:
+            messages.insert(1, {"role": "system", "content": f"Context Information (Use this to answer):\n{final_context}"})
 
         payload = {
             "model": OLLAMA_MODEL,

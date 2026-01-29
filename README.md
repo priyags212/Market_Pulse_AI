@@ -37,6 +37,13 @@ Every piece of news goes through a multi-stage AI pipeline:
         1.  The backend scrapes the specific article's full text.
         2.  It sends a prompt to the local **Ollama** instance running **Llama 3.2**.
         3.  The LLM generates a concise 100-word summary, stripping away noise, ads, and filler text.
+*   **Dynamic Retrieval Augmented Generation (RAG)**:
+    *   **Goal**: To answer factual questions about companies not in the model's training data.
+    *   **Self-Learning Workflow**:
+        1.  **Extraction**: The AI analyzes your query (e.g., "How did Dabur perform?") and identifies the ticker (`DABUR.NS`).
+        2.  **Check & Fetch**: It checks the local **ChromaDB** vector store. If data is missing, it dynamically fetches the latest quarterly financials using `yfinance`.
+        3.  **Ingest**: The data is chunked, embedded using `SentenceTransformers`, and stored for future use.
+        4.  **Answer**: The chatbot retrieves this "fresh" context to provide an accurate, number-backed answer.
 
 ### 3. User Experience (The Frontend)
 *   **Real-Time Feed**: Users see a paginated feed of news, sorted by recency.
@@ -89,6 +96,10 @@ Never miss a market-moving update.
 *   **AI/ML**:
     *   **Ollama (Llama 3.2)**: Chat & Summarization.
     *   **FinBERT**: Sentiment Analysis (Hugging Face).
+    *   **RAG Pipeline**:
+        *   **Vector DB**: ChromaDB (Locally persistent).
+        *   **Embeddings**: `sentence-transformers/all-MiniLM-L6-v2`.
+        *   **Orchestration**: Custom Dynamic Ingestion Engine.
 *   **Scheduling**: APScheduler (Background tasks).
 *   **Email**: SMTP (Google Mail).
 
