@@ -138,6 +138,13 @@ def ingest_financial_data(tickers):
         metadatas = [c["metadata"] for c in chunks]
         
         # Upsert into ChromaDB
+        # First, delete existing data for this ticker to prevent duplicates/staleness
+        try:
+            print(f"Clearing old data for {ticker}...")
+            collection.delete(where={"ticker": ticker})
+        except Exception as e:
+            print(f"Warning: Could not delete old data for {ticker}: {e}")
+
         collection.upsert(
             ids=ids,
             documents=texts,
@@ -168,6 +175,7 @@ def extract_ticker_from_query(query: str) -> str:
         "HDFC": "HDFCBANK.NS",
         "TATA MOTORS": "TATAMOTORS.NS",
         "TATA STEEL": "TATASTEEL.NS",
+        "INFOSYS": "INFY.NS",
         "MORNINGSTAR": "MORN"
     }
     

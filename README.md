@@ -44,6 +44,7 @@ Every piece of news goes through a multi-stage AI pipeline:
         2.  **Freshness Check**: It checks the local **ChromaDB** vector store. 
             *   *Scenario A*: Data is fresh (ingested < 48 hours ago). It acts immediately.
             *   *Scenario B*: Data is missing or stale. It **dynamically fetches** real-time price history and quarterly financials from **Yahoo Finance** on the fly.
+            *   *Scenario C*: **Self-Healing**: If stale data exists, the system automatically purges it before ingesting new 2025/2026 data to prevent hallucinations.
         3.  **Ingest**: The new data is chunked, embedded using `SentenceTransformers`, and stored for future use.
         4.  **Answer**: The chatbot retrieves this "live" context to provide an accurate, number-backed answer (e.g., "Tata Steel closed at 145.20 yesterday").
 

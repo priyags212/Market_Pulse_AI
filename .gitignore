@@ -11,6 +11,8 @@ backend/marketpulse.db
 *.db
 backend/backend_output.log
 backend/pip_list.txt
+backend/debug_*.py
+backend/verify_*.py
 
 # Frontend
 frontend/node_modules/
