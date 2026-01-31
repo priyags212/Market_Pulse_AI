@@ -171,6 +171,7 @@ def read_news(
     filter_type: str = None,
     db: Session = Depends(get_db)
 ):
+
     try:
         all_news = get_latest_news() 
         if not all_news:

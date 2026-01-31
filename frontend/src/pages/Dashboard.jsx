@@ -106,7 +106,7 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
         }, 5000);
 
         return () => clearInterval(interval);
-    }, [currentPage, newsSearchQuery]);
+    }, [currentPage, newsSearchQuery, dateFilter, selectedStocks, isAuthenticated]);
 
     useEffect(() => {
         if (isAuthenticated && userEmail) {
@@ -266,7 +266,7 @@ function Dashboard({ onLogout, isAuthenticated, userName }) {
                 // For General Feed (All Time, Trending, Time filters):
                 // User Requirement: "custom feed should be linked to the user only. if i logout ... default all categories"
 
-                if (isAuthenticated) {
+                if (isAuthenticated && dateFilter !== 'trending') {
                     const userEmail = localStorage.getItem('userEmail');
                     // Store/Retrieve per user to prevent leaking prefs between users on same device
                     const storageKey = userEmail ? `userCategories_${userEmail}` : 'userCategories';
