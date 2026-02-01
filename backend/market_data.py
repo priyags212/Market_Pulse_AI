@@ -2,6 +2,7 @@ import yfinance as yf
 from datetime import datetime
 import concurrent.futures
 import time
+from live_scraper import get_live_price
 
 # In-memory cache for market data
 MARKET_CACHE = None
@@ -45,17 +46,51 @@ def get_market_data():
                 hist = ticker.history(period="5d", interval="15m")
             if hist.empty:
                 hist = ticker.history(period="1mo")
-            if hist.empty: return None
             
-            current = hist["Close"].iloc[-1]
-            try:
-                prev_close = ticker.fast_info.previous_close
-            except:
-                prev_close = hist["Open"].iloc[0]
+            # FIX: Use fast_info for the most up-to-date 'current' price. 
+            # 'history' can be stale (e.g. on weekends/holidays with special sessions).
+            # TRY LIVE SCRAPER FIRST for current price
+            # This bypasses yfinance staleness entirely
+            live_price = get_live_price(symbol)
+            
+            if live_price:
+                current = live_price
+                # Try to get previous close from yfinance for change calc
+                try:
+                    prev_close = ticker.fast_info.previous_close
+                except:
+                    if not hist.empty:
+                        prev_close = hist["Close"].iloc[-1] # fallback to last close
+                    else:
+                        prev_close = current # no change
+            else:
+                # FALLBACK to yfinance fast_info/history
+                try:
+                    current = ticker.fast_info.last_price
+                    prev_close = ticker.fast_info.previous_close
+                    if not current: raise ValueError("No fast_info price")
+                except:
+                    if hist.empty: return None
+                    current = hist["Close"].iloc[-1]
+                    try:
+                        prev_close = ticker.fast_info.previous_close
+                    except:
+                        prev_close = hist["Open"].iloc[0]
             
             change = current - prev_close
             percent_change = (change / prev_close) * 100
-            sparkline_points = hist["Close"].tail(20).tolist()
+            
+            sparkline_points = []
+            if not hist.empty:
+                sparkline_points = hist["Close"].tail(20).tolist()
+                
+                # Append live point if it's new
+                try:
+                    if live_price or (hist.index[-1].date() < datetime.now().date()):
+                         # Always append if we have a fresh live price
+                         sparkline_points.append(current)
+                except:
+                    pass
             
             return name, {
                 "price": round(current, 2),
@@ -136,7 +171,14 @@ def get_stock_details(symbol):
         # hist = ticker.history(period="1d") 
         
         # Essential Data
-        price = info.last_price
+        # TRY LIVE SCRAPER FIRST
+        live_price = get_live_price(search_symbol)
+        
+        if live_price:
+            price = live_price
+        else:
+            price = info.last_price
+            
         prev_close = info.previous_close
         open_price = info.open
         day_high = info.day_high
@@ -224,6 +266,38 @@ def get_stock_history(symbol, period="1mo"):
                 "high": round(row["High"], 2),
                 "low": round(row["Low"], 2)
             })
+            
+        # FIX: Append live price if history is stale (e.g. Special Session or Weekend lag)
+        try:
+            live_price = get_live_price(search_symbol)
+            
+            if not hist.empty:
+                last_hist_time = hist.index[-1]
+                
+                # If we have a live price, check if we need to append it
+                # We append if:
+                # 1. The history is from a previous day
+                # 2. OR we just want to ensure the very latest price is shown (even if intraday)
+                if live_price:
+                     # Always append live price for charts to make them "feel" live
+                     data.append({
+                         "date": datetime.now().astimezone().isoformat(), 
+                         "price": round(live_price, 2),
+                         "high": round(live_price, 2), 
+                         "low": round(live_price, 2)
+                     })
+                elif last_hist_time.date() < datetime.now().date():
+                     # Fallback to fast_info if scraper failed but history is OLD
+                     current_price = ticker.fast_info.last_price
+                     if current_price:
+                         data.append({
+                             "date": datetime.now().astimezone().isoformat(), 
+                             "price": round(current_price, 2),
+                             "high": round(current_price, 2), 
+                             "low": round(current_price, 2)
+                         })
+        except Exception as ex:
+            print(f"Error appending live point: {ex}")
             
         return data
 
